@@ -8,7 +8,7 @@ import os
 import urllib
 from string import Template
 import collections
-import MySQLdb
+import pymysql
 import pdb
 #from itertools import groupby
 
@@ -82,8 +82,17 @@ MRSTY_TUI = 1
 
 MRSAB_LAT = 19
 
+
+UMLS_BASE_URI = 'http://bioportal.bioontology.org/ontologies/'
+DB_HOST = '127.0.0.1'
+DB_USER = 'umls'
+DB_PASS = 'umls'
+DB_NAME = 'umls'
+UMLS_VERSION = '2015ab'
+OUTPUT_FOLDER = '/mnt1/tmp'
+
 def get_umls_url(code):
-    return "%s%s/"%(conf.UMLS_BASE_URI,code)
+    return "%s%s/"%(UMLS_BASE_URI,code)
 
 def flatten(matrix):
     return reduce(lambda x,y: x+y,matrix)
@@ -117,8 +126,8 @@ def get_code(reg,load_on_cuis):
     raise AttributeError, "No code on reg [%s]"%("|".join(reg))
 
 def __get_connection():
-    return MySQLdb.connect(host=conf.DB_HOST,user=conf.DB_USER,
-              passwd=conf.DB_PASS,db=conf.DB_NAME,charset='utf8',use_unicode=True)
+    return pymysql.connect(host=DB_HOST,user=DB_USER,
+              passwd=DB_PASS,db=DB_NAME,charset='utf8',use_unicode=True)
 
 def generate_semantic_types(con,with_roots=False):
     url = get_umls_url("STY")
@@ -642,7 +651,7 @@ class UmlsOntology(object):
         header_values = dict(
            label = self.ont_code,
            comment = comment % self.ont_code,
-           versioninfo = conf.UMLS_VERSION,
+           versioninfo = UMLS_VERSION,
            uri = self.ns
         )
         fout.write(ONTOLOGY_HEADER.substitute(header_values))
@@ -701,11 +710,10 @@ if __name__ == "__main__":
         umls_conf = filter(lambda x: not x[0].startswith("#"), umls_conf)
         fconf.close()
 
-    if not os.path.isdir(conf.OUTPUT_FOLDER):
-        raise Exception("Output folder '%s' not found."%conf.OUTPUT_FOLDER)
-
+    if not os.path.isdir(OUTPUT_FOLDER):
+        raise Exception("Output folder '%s' not found."%OUTPUT_FOLDER)
     sem_types = generate_semantic_types(con,with_roots=True)
-    output_file = os.path.join(conf.OUTPUT_FOLDER,"umls_semantictypes.ttl")
+    output_file = os.path.join(OUTPUT_FOLDER,"umls_semantictypes.ttl")
     with codecs.open(output_file,"w","utf-8") as semfile:
         semfile.write(PREFIXES)
         semfile.write(sem_types)
@@ -733,7 +741,7 @@ if __name__ == "__main__":
         if umls_code.startswith("#"):
             continue
         load_on_cuis = load_on_field == "load_on_cuis"
-        output_file = os.path.join(conf.OUTPUT_FOLDER,file_out)
+        output_file = os.path.join(OUTPUT_FOLDER,file_out)
         sys.stdout.write("Generating %s (using '%s')\n" %
                 (umls_code,load_on_field))
         sys.stdout.flush()
