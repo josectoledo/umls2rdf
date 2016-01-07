@@ -89,7 +89,7 @@ DB_USER = 'umls'
 DB_PASS = 'umls'
 DB_NAME = 'umls'
 UMLS_VERSION = '2015ab'
-OUTPUT_FOLDER = '/mnt1/tmp'
+OUTPUT_FOLDER = '/tmp'
 
 def get_umls_url(code):
     return "%s%s/"%(UMLS_BASE_URI,code)
@@ -645,14 +645,15 @@ class UmlsOntology(object):
         """
         dataset_name = os.path.basename(file_path).split(".")[0]
         graph_uri = DATASET_BASE_URI + dataset_name
-        file_path = file_path +".graph"
-        f = open(file_path, "rb")
+        file_path = file_path.strip() +".graph"
+        f = open(file_path, "wb")
         f.write(graph_uri)
         f.close()
 
     def write_into(self,file_path,hierarchy=True):
         sys.stdout.write("%s writing terms ... %s\n" % (self.ont_code, file_path))
         sys.stdout.flush()
+        self.write_vos_graph_file(file_path)
         fout = codecs.open(file_path,"w","utf-8")
         #nterms = len(self.atoms_by_code)
         fout.write(PREFIXES)
