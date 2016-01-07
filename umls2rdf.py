@@ -82,7 +82,7 @@ MRSTY_TUI = 1
 
 MRSAB_LAT = 19
 
-
+DATASET_BASE_URI = 'http://apixio.com/external/umls/'
 UMLS_BASE_URI = 'http://bioportal.bioontology.org/ontologies/'
 DB_HOST = '127.0.0.1'
 DB_USER = 'umls'
@@ -637,6 +637,18 @@ class UmlsOntology(object):
             #    umls_class.is_root = (umls_class.code() == "138875005")
 
             yield umls_class
+
+    def write_vos_graph_file(self, file_path):
+        """
+        creates the .graph files forevery .ttl that is created
+        :return:
+        """
+        dataset_name = os.path.basename(file_path).split(".")[0]
+        graph_uri = DATASET_BASE_URI + dataset_name
+        file_path = file_path +".graph"
+        f = open(file_path, "rb")
+        f.write(graph_uri)
+        f.close()
 
     def write_into(self,file_path,hierarchy=True):
         sys.stdout.write("%s writing terms ... %s\n" % (self.ont_code, file_path))
